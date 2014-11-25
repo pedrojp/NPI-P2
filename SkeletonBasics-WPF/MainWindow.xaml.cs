@@ -17,7 +17,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     public partial class MainWindow : Window
     {
         /// Ángulo en el que es necesario levanta la pierna
-        private int angulo = 60;
+        private int angulo_levantar = 30;
+        /// Ángulo en el que ambas piernas deben separarse
+        private int angulo_separar = 30;
+        /// Ángulo general
+        private double angulo_general = 0;
 
         /// Series, repeticiones y margen de error del ejercicio
         public static int series = 0, repeticiones;
@@ -26,7 +30,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// Variables a mostrar en la ventana principal
         private int series_restantes, repeticiones_restantes;
         int ejercicio_actual; // Levantar pierna derecha -> 0, levantar pierna izquierda-> 1, piernas abiertas brazos arriba -> 2, piernas cerradas brazos abajo -> 3
-        bool transicion;
+        bool vuelta_ejericicio = false;
         private string[] nombre_ejercicio;
  
 
@@ -108,11 +112,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         {
             InitializeComponent();
             this.nombre_ejercicio = new string[5];
-            this.nombre_ejercicio[0] = "Brazos en cruz. Pierna derecha levantada.";
+            this.nombre_ejercicio[0] = "Brazos en cruz. Pierna derecha levantada ";
             this.nombre_ejercicio[1] = "Piernas apoyadas en el suelo. Brazos pegados al cuerpo";
-            this.nombre_ejercicio[2] = "Brazos en cruz. Pierna izquierda levanta.";
-            this.nombre_ejercicio[3] = "Piernas cerradas. Brazos relajados.";
-            this.nombre_ejercicio[4] = "Piernas abiertas. Brazos por encima de la cabeza.";
+            this.nombre_ejercicio[2] = "Brazos en cruz. Pierna izquierda levantada ";
+            this.nombre_ejercicio[3] = "Brazos por encima de la cabeza. Piernas abiertas ";
+            this.nombre_ejercicio[4] = "Piernas cerradas. Brazos relajados.";
         }
 
 
@@ -169,6 +173,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             ventana_inicio.ShowDialog();
             ejercicio_actual = 0;
             // Se actualizan los contadores
+            this.series_restantes = series;
+            this.repeticiones_restantes = repeticiones;
             this.campo_series_restante.Content = series;
             this.campo_repeticiones_restantes.Content = repeticiones;
             this.campo_ejercicio.Content = this.nombre_ejercicio[this.ejercicio_actual];
@@ -283,6 +289,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
         }
 
+        private void ActualizaInterfaz() { 
+            
+        }
+
         private bool BrazoIzquierdoLevantado(Skeleton skeleton)
         {
             // Si el brazo derecho se encuentra por encima de la cabeza
@@ -306,9 +316,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             // Longitud en z entre los tobillos
             double dz_tobillos = System.Math.Abs(skeleton.Joints[JointType.AnkleLeft].Position.Z - skeleton.Joints[JointType.AnkleRight].Position.Z);
-
+            this.angulo_general = (dz_tobillos * 90) / dy_pierna_izquierda;
+            System.Console.WriteLine("{0}", this.angulo_general);
             // En el caso de que se forme un ángulo que se tome como correcto con la pierna derecha, devuelve true
-            return ((((dz_tobillos * 90) / dy_pierna_izquierda) > (angulo - m_error*angulo ) && (((dz_tobillos * 90) / dy_pierna_izquierda) < angulo + m_error*angulo)));
+            return ((((dz_tobillos * 90) / dy_pierna_izquierda) > (angulo_levantar - m_error*angulo_levantar ) && (((dz_tobillos * 90) / dy_pierna_izquierda) < angulo_levantar + m_error*angulo_levantar)));
         }
 
         private bool PiernaIzquierdaLevantada(Skeleton skeleton) 
@@ -318,14 +329,14 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             // Longitud en z entre los tobillos
             double dz_tobillos = System.Math.Abs(skeleton.Joints[JointType.AnkleLeft].Position.Z - skeleton.Joints[JointType.AnkleRight].Position.Z);
-
+            this.angulo_general = (dz_tobillos * 90) / dy_pierna_derecha;
             // En el caso de que se forme un ángulo que se tome como correcto con la pierna derecha, devuelve true
-            return ((((dz_tobillos * 90) / dy_pierna_derecha) > angulo - m_error*angulo) && (((dz_tobillos * 90) / dy_pierna_derecha) < angulo +  m_error*angulo));
+            return ((((dz_tobillos * 90) / dy_pierna_derecha) > angulo_levantar - m_error*angulo_levantar) && (((dz_tobillos * 90) / dy_pierna_derecha) < angulo_levantar +  m_error*angulo_levantar));
         
         }
 
         private bool PiernasEnElSuelo(Skeleton skeleton) {
-            double dif = System.Math.Abs(skeleton.Joints[JointType.FootLeft].Position.Y - skeleton.Joints[JointType.FootRight].Position.Y)
+            double dif = System.Math.Abs(skeleton.Joints[JointType.FootLeft].Position.Y - skeleton.Joints[JointType.FootRight].Position.Y);
             return dif < m_error;
 
         }
@@ -352,8 +363,18 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 skeleton.Joints[JointType.WristRight].Position.X < skeleton.Joints[JointType.ElbowRight].Position.X;
         }
 
-        private bool PiernasDerechaAbierta(Skeleton skeleton) { 
+        private bool PiernasSeparadas(Skeleton skeleton) {
+            double suelo_cadera = System.Math.Abs(skeleton.Joints[JointType.HipCenter].Position.Y - skeleton.Joints[JointType.AnkleLeft].Position.Y);
+            double pie_izq_a_centro = System.Math.Abs(skeleton.Joints[JointType.HipCenter].Position.X - skeleton.Joints[JointType.AnkleLeft].Position.X);
+            double pie_der_a_centro = System.Math.Abs(skeleton.Joints[JointType.HipCenter].Position.X - skeleton.Joints[JointType.AnkleRight].Position.X);
             
+            double ang_izq = System.Math.Atan(pie_izq_a_centro/suelo_cadera)*(180/System.Math.PI);
+            double ang_der = System.Math.Atan(pie_der_a_centro/suelo_cadera)*(180/System.Math.PI);
+
+            this.angulo_general = ang_der + ang_izq;
+
+            return (ang_der+ang_izq) < this.angulo_separar+this.angulo_separar*m_error && (ang_der+ang_izq) > this.angulo_separar-this.angulo_separar*m_error;
+
         }
 
         // Devuelve true si la posicion del ejercicio es correcta, false en otro caso
@@ -371,10 +392,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     correcto = BrazoIzquierdoLevantado(skeleton) && BrazoIzquierdoLevantado(skeleton) && PiernaIzquierdaLevantada(skeleton);
                     break;
                 case (3):
+                    correcto = BrazoIzquierdoEncimaCabeza(skeleton) && BrazoDerechoEncimaCabeza(skeleton) && PiernasSeparadas(skeleton);
+                    break;
+                case (4):
                     correcto = PiernasEnElSuelo(skeleton) && BrazoDerechoPegadoCuerpo(skeleton) && BrazoIzquierdoPegadoCuerpo(skeleton);
                     break;
-                case (4): break;
-                    correcto = 
 
             }
             return correcto;
@@ -390,25 +412,33 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
             // Para cada uno de los posibles ejercicios
-            System.Console.WriteLine("[{5}]:{6} BI {0}, BD {1}, PD {2}, PS {3}, PI {4}", BrazoIzquierdoLevantado(skeleton), BrazoDerechoLevantado(skeleton), PiernaDerechaLevantada(skeleton), PiernasEnElSuelo(skeleton), PiernaIzquierdaLevantada(skeleton), this.ejercicio_actual, EjercicioCorrecto(this.ejercicio_actual, skeleton));
-            this.campo_ejercicio.Content = this.nombre_ejercicio[ejercicio_actual];
+            if (this.ejercicio_actual == 0 || this.ejercicio_actual == 2 || this.ejercicio_actual == 3)
+                this.campo_ejercicio.Content = this.nombre_ejercicio[ejercicio_actual] + this.angulo_levantar + " grados aproximadamente (actualmente " + System.Convert.ToInt16(this.angulo_general) + " grados)";
+            else
+                this.campo_ejercicio.Content = this.nombre_ejercicio[ejercicio_actual];
+
+            this.campo_repeticiones_restantes.Content = this.repeticiones_restantes;
+            this.campo_series_restante.Content = this.series_restantes;
             switch (this.ejercicio_actual) {
                 case (0):
                     if (EjercicioCorrecto(this.ejercicio_actual, skeleton)){
                         this.ejercicio_actual++;
+                        this.vuelta_ejericicio = false;
+
                     }
                     break;
 
                 case (1):
+                    this.angulo_general = 0;
                     if (EjercicioCorrecto(this.ejercicio_actual, skeleton))
                     {
-                        this.ejercicio_actual++;
+                        if (!vuelta_ejericicio) this.ejercicio_actual++;
+                        else this.ejercicio_actual--;
                     }
                     break;
 
                 case (2): 
                     if (EjercicioCorrecto(this.ejercicio_actual, skeleton)){
-                        System.Console.WriteLine("El ejericicio 2 es correcto");
                         this.repeticiones_restantes--;
                         if (this.repeticiones_restantes == 0){
                             ejercicio_actual++;
@@ -416,31 +446,36 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                         }
                         else{
                             this.ejercicio_actual--;
+                            this.vuelta_ejericicio = true;
                         }
                     }
                     break;
 
-                case (3): 
+                case (3):
+                    System.Console.WriteLine("BI:{0} BD:{1} P:{2}" , BrazoIzquierdoEncimaCabeza(skeleton), BrazoDerechoEncimaCabeza(skeleton), PiernasSeparadas(skeleton));
                     if (EjercicioCorrecto(this.ejercicio_actual, skeleton)){
+                        System.Console.WriteLine("Ejercicio CORRECTO");
                         this.ejercicio_actual++;
                     }
                     break;
 
                 case (4):
-                    if (EjercicioCorrecto(this.ejercicio_actual, skeleton))
-                    {
+                    if (EjercicioCorrecto(this.ejercicio_actual, skeleton)){
+
                         this.repeticiones_restantes--;
-                        if (this.repeticiones_restantes == 0){
-                            if (this.series_restantes == 0){
-                                // Se termina
+                        if (this.repeticiones_restantes == 0){ // Si se han hecho todas las repeticiones
+                            this.series_restantes--;
+                            if (this.series_restantes == 0)
+                            {
+                                System.Console.WriteLine("FIN DEL EJERCICIO");
                             }
-                            else{
-                                this.series_restantes--;
+                            else {
+                                this.ejercicio_actual = 0; // Empieza de nuevo el ejercicio
                                 this.repeticiones_restantes = repeticiones;
-                                this.ejercicio_actual = 0;
                             }
+
                         }
-                        else{
+                        else{ // Si aún quedan repeticiones por hacer
                             this.ejercicio_actual--;
                         }
                     }
