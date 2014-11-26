@@ -24,3 +24,17 @@ C:\Users\Pedro\Documents\GitHub\NPI-P2\SkeletonBasics-WPF\obj\Debug\Microsoft.Sa
 C:\Users\Pedro\Documents\GitHub\NPI-P2\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.csproj.GenerateResource.Cache
 C:\Users\Pedro\Documents\GitHub\NPI-P2\SkeletonBasics-WPF\obj\Debug\VentanaInicio.baml
 C:\Users\Pedro\Documents\GitHub\NPI-P2\SkeletonBasics-WPF\obj\Debug\VentanaInicio.g.cs
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.exe
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.pdb
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\bin\Debug\SkeletonBasics-WPF.exe
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\bin\Debug\SkeletonBasics-WPF.pdb
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.csprojResolveAssemblyReference.cache
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\MainWindow.baml
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\VentanaInicio.baml
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\MainWindow.g.cs
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\VentanaInicio.g.cs
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\App.g.cs
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF_MarkupCompile.cache
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.g.resources
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\Microsoft.Samples.Kinect.SkeletonBasics.Properties.Resources.resources
+C:\Users\Pedro\Desktop\NPI-P2-c8a7a86327174bfc3b2b7827774501a6ef568e87\SkeletonBasics-WPF\obj\Debug\SkeletonBasics-WPF.csproj.GenerateResource.Cache

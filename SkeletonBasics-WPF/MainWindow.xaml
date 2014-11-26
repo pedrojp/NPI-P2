@@ -74,7 +74,11 @@
             <Label x:Name="campo_repeticiones_restantes" Grid.Row="2" Grid.Column="1" Content=""/>
         </Grid>
         <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
-            <Image Name="Image" Width="640" Height="480"/>
+            <Grid Name="VideoGrid" ClipToBounds="True" Background="AliceBlue">
+                <Image Name="ColorImage" Width="640" Height="480"/>
+                <Image Name="SkeletalImage" Width="640" Height="480"/>
+            </Grid>
+
         </Viewbox>
         <StatusBar Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="{StaticResource MediumGreyBrush}">
             <StatusBarItem Padding="0 0 0 10">

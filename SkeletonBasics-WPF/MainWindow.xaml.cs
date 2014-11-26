@@ -137,7 +137,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         /// <param name="skeleton">skeleton to draw clipping information for</param>
         /// <param name="drawingContext">drawing context to draw to</param>
-     /*   private static void RenderClippedEdges(Skeleton skeleton, DrawingContext drawingContext)
+        private static void RenderClippedEdges(Skeleton skeleton, DrawingContext drawingContext)
         {
             if (skeleton.ClippedEdges.HasFlag(FrameEdges.Bottom))
             {
@@ -170,7 +170,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     null,
                     new Rect(RenderWidth - ClipBoundsThickness, 0, ClipBoundsThickness, RenderHeight));
             }
-        }*/
+        }
 
         /// <summary>
         /// Execute startup tasks
@@ -197,7 +197,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             this.imageSource = new DrawingImage(this.drawingGroup);
 
             // Display the drawing using our image control
-            Image.Source = this.imageSource;
+            this.SkeletalImage.Source = this.imageSource;
 
             // Look through all sensors and start the first connected one.
             // This requires that a Kinect is connected at the time of app startup.
@@ -221,25 +221,21 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 // Allocate space to put the pixels we'll receive
                 this.colorPixels = new byte[this.sensor.ColorStream.FramePixelDataLength];
 
-
                 // This is the bitmap we'll display on-screen
                 this.colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
 
                 // Set the image we display to point to the bitmap where we'll put the image data
-                this.Image.Source = this.colorBitmap;
+                this.ColorImage.Source = this.colorBitmap;
+
+                // Add an event handler to be called whenever there is new color frame data
+                this.sensor.ColorFrameReady += this.SensorColorFrameReady;
 
                 // Turn on the skeleton stream to receive skeleton frames
-
-
-                //this.sensor.ColorFrameReady += this.SensorColorFrameReady;
+                this.sensor.SkeletonStream.Enable();
 
                 // Add an event handler to be called whenever there is new color frame data
-                this.sensor.SkeletonStream.Enable();
                 this.sensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
 
-                // Add an event handler to be called whenever there is new color frame data
-
-                
                 // Start the sensor!
                 try
                 {
@@ -255,8 +251,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 this.statusBarText.Text = Properties.Resources.NoKinectReady;
             }
-
-            System.Console.WriteLine("TERMINO DE ESTO");
         }
 
         /// <summary>
@@ -291,7 +285,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
         }
 
-
         /// <summary>
         /// Event handler for Kinect sensor's SkeletonFrameReady event
         /// </summary>
@@ -313,34 +306,33 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             using (DrawingContext dc = this.drawingGroup.Open())
             {
                 // Draw a transparent background to set the render size
-                //dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
+                dc.DrawRectangle(Brushes.Transparent, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
 
                 if (skeletons.Length != 0)
                 {
                     foreach (Skeleton skel in skeletons)
                     {
-                        //RenderClippedEdges(skel, dc);
+                        RenderClippedEdges(skel, dc);
 
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
                             this.DrawBonesAndJoints(skel, dc);
                         }
-                        //else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
-                        //{
-                            /*dc.DrawEllipse(
+                        else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
+                        {
+                            dc.DrawEllipse(
                             this.centerPointBrush,
                             null,
                             this.SkeletonPointToScreen(skel.Position),
                             BodyCenterThickness,
-                            BodyCenterThickness);*/
-                        //}
+                            BodyCenterThickness);
+                        }
                     }
                 }
 
                 // prevent drawing outside of our render area
-                //this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
+                this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
             }
-
         }
 
 
@@ -607,7 +599,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="drawingContext">drawing context to draw to</param>
         /// <param name="jointType0">joint to start drawing from</param>
         /// <param name="jointType1">joint to end drawing at</param>
-       private void DrawBone(Skeleton skeleton, DrawingContext drawingContext, JointType jointType0, JointType jointType1)
+        private void DrawBone(Skeleton skeleton, DrawingContext drawingContext, JointType jointType0, JointType jointType1)
         {
             Joint joint0 = skeleton.Joints[jointType0];
             Joint joint1 = skeleton.Joints[jointType1];
