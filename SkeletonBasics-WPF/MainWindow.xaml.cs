@@ -17,6 +17,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// Puntuación
+        public  static int puntuacion = 0;
+
         /// Ángulo en el que es necesario levanta la pierna
         private int angulo_levantar = 60;
         /// Ángulo en el que ambas piernas deben separarse
@@ -82,7 +85,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <summary>
         /// Objetos pen para dibujar el esqueleto 
         /// </summary>
-        private readonly Pen trackedBonePenVerde = new Pen(Brushes.Green, 6);
+        private readonly Pen trackedBonePenVerde = new Pen(Brushes.Red, 6);
         private readonly Pen trackedBonePenRojo = new Pen(Brushes.Red, 6);
 
         /// <summary>
@@ -338,31 +341,107 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private bool BrazoIzquierdoLevantado(Skeleton skeleton)
         {
-            // Si el brazo derecho se encuentra por encima de la cabeza
-            return (skeleton.Joints[JointType.ElbowLeft].Position.Y >= skeleton.Joints[JointType.ShoulderLeft].Position.Y) &&
-                                    (skeleton.Joints[JointType.WristLeft].Position.Y >= skeleton.Joints[JointType.ShoulderLeft].Position.Y) &&
-                                    (skeleton.Joints[JointType.WristLeft].Position.Y < skeleton.Joints[JointType.Head].Position.Y);
+            float long_brazo = System.Math.Abs(skeleton.Joints[JointType.Spine].Position.Y - skeleton.Joints[JointType.Head].Position.Y);
+            double mu_y = skeleton.Joints[JointType.WristLeft].Position.Y;
+            double co_y = skeleton.Joints[JointType.ElbowLeft].Position.Y;
+            double dif = System.Math.Abs(mu_y - co_y);
+            bool correcto = dif < m_error;
+            // Si la posición no es correcta se modifica para mostrar la pos correcta
+            if (!correcto)
+            {
+                var punto = skeleton.Joints[JointType.WristLeft];
+                var pos = punto.Position;
+                pos.Y = skeleton.Joints[JointType.ShoulderLeft].Position.Y;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X-((3/7)*long_brazo);
+                punto.Position = pos;
+                skeleton.Joints[JointType.WristLeft] = punto;
+
+                punto = skeleton.Joints[JointType.ElbowLeft];
+                pos = punto.Position;
+                pos.Y = skeleton.Joints[JointType.ShoulderLeft].Position.Y;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X - ((6 / 7) * long_brazo);
+                punto.Position = pos;
+                skeleton.Joints[JointType.ElbowLeft] = punto;
+
+                punto = skeleton.Joints[JointType.HandLeft];
+                pos = punto.Position;
+                pos.Y = skeleton.Joints[JointType.ShoulderLeft].Position.Y;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X-(long_brazo);
+                punto.Position = pos;
+                skeleton.Joints[JointType.HandLeft] = punto;
+            }
+            return correcto;
         }
 
         private bool BrazoDerechoLevantado(Skeleton skeleton)
         {
-            // Si el brazo izquierdo se encuentra por encima de la cabeza
-            return (skeleton.Joints[JointType.ElbowRight].Position.Y >= skeleton.Joints[JointType.ShoulderRight].Position.Y) &&
-                                  (skeleton.Joints[JointType.WristRight].Position.Y >= skeleton.Joints[JointType.ShoulderRight].Position.Y) &&
-                                  (skeleton.Joints[JointType.WristRight].Position.Y < skeleton.Joints[JointType.Head].Position.Y);
+            float long_brazo = System.Math.Abs(skeleton.Joints[JointType.Spine].Position.Y - skeleton.Joints[JointType.Head].Position.Y);
+            double mu_y = skeleton.Joints[JointType.WristRight].Position.Y;
+            double co_y = skeleton.Joints[JointType.ElbowRight].Position.Y;
+            double dif = System.Math.Abs(mu_y - co_y);
+            bool correcto = dif < m_error;
+            // Si la posición no es correcta se modifica para mostrar la pos correcta
+            if (!correcto)
+            {
+                var punto = skeleton.Joints[JointType.WristRight];
+                var pos = punto.Position;
+                pos.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y;
+                pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X + ((3 / 7) * long_brazo);
+                punto.Position = pos;
+                skeleton.Joints[JointType.WristRight] = punto;
+
+                punto = skeleton.Joints[JointType.ElbowRight];
+                pos = punto.Position;
+                pos.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y;
+                pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X + ((6 / 7) * long_brazo);
+                punto.Position = pos;
+                skeleton.Joints[JointType.ElbowRight] = punto;
+
+                punto = skeleton.Joints[JointType.HandRight];
+                pos = punto.Position;
+                pos.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y;
+                pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X + (long_brazo);
+                punto.Position = pos;
+                skeleton.Joints[JointType.HandRight] = punto;
+            }
+            return correcto;
         }
 
         private bool PiernaDerechaLevantada(Skeleton skeleton)
         {
+           
             // Longitud en y de la pierna izquierda
-            double dy_pierna_izquierda = System.Math.Abs(skeleton.Joints[JointType.HipLeft].Position.Y - skeleton.Joints[JointType.AnkleLeft].Position.Y);
+            float dy_pierna_izquierda = System.Math.Abs(skeleton.Joints[JointType.HipLeft].Position.Y - skeleton.Joints[JointType.AnkleLeft].Position.Y);
 
             // Longitud en z entre los tobillos
             double dz_tobillos = System.Math.Abs(skeleton.Joints[JointType.AnkleLeft].Position.Z - skeleton.Joints[JointType.AnkleRight].Position.Z);
             this.angulo_general = (dz_tobillos * 90) / dy_pierna_izquierda;
-            System.Console.WriteLine("{0}", this.angulo_general);
             // En el caso de que se forme un ángulo que se tome como correcto con la pierna derecha, devuelve true
-            return ((((dz_tobillos * 90) / dy_pierna_izquierda) > (angulo_levantar - m_error*angulo_levantar ) && (((dz_tobillos * 90) / dy_pierna_izquierda) < angulo_levantar + m_error*angulo_levantar)));
+            bool correcto = ((((dz_tobillos * 90) / dy_pierna_izquierda) > (angulo_levantar - m_error*angulo_levantar ) && (((dz_tobillos * 90) / dy_pierna_izquierda) < angulo_levantar + m_error*angulo_levantar)));
+
+            if (!correcto) {
+                var punto = skeleton.Joints[JointType.KneeRight];
+                var pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipRight].Position.X;
+                pos.Y = punto.Position.Y + (this.angulo_levantar / 90) * punto.Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.KneeRight] = punto;
+
+                punto = skeleton.Joints[JointType.AnkleRight];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipRight].Position.X;
+                pos.Y = punto.Position.Y + (this.angulo_levantar / 90) * punto.Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.AnkleRight] = punto;
+
+                punto = skeleton.Joints[JointType.FootRight];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipRight].Position.X;
+                pos.Y = punto.Position.Y + (this.angulo_levantar / 90) * punto.Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.FootRight] = punto;
+            }
+            return correcto;
         }
 
         private bool PiernaIzquierdaLevantada(Skeleton skeleton) 
@@ -374,40 +453,188 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             double dz_tobillos = System.Math.Abs(skeleton.Joints[JointType.AnkleLeft].Position.Z - skeleton.Joints[JointType.AnkleRight].Position.Z);
             this.angulo_general = (dz_tobillos * 90) / dy_pierna_derecha;
             // En el caso de que se forme un ángulo que se tome como correcto con la pierna derecha, devuelve true
-            return ((((dz_tobillos * 90) / dy_pierna_derecha) > angulo_levantar - m_error*angulo_levantar) && (((dz_tobillos * 90) / dy_pierna_derecha) < angulo_levantar +  m_error*angulo_levantar));
-        
+            bool correcto = ((((dz_tobillos * 90) / dy_pierna_derecha) > angulo_levantar - m_error*angulo_levantar) && (((dz_tobillos * 90) / dy_pierna_derecha) < angulo_levantar +  m_error*angulo_levantar));
+
+            if (!correcto)
+            {
+                var punto = skeleton.Joints[JointType.KneeLeft];
+                var pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipLeft].Position.X;
+                pos.Y = punto.Position.Y + (this.angulo_levantar / 90) * punto.Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.KneeLeft] = punto;
+
+                punto = skeleton.Joints[JointType.AnkleLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipLeft].Position.X;
+                pos.Y = punto.Position.Y + (this.angulo_levantar / 90) * punto.Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.AnkleLeft] = punto;
+
+                punto = skeleton.Joints[JointType.FootLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipLeft].Position.X;
+                pos.Y = punto.Position.Y + (this.angulo_levantar / 90) * punto.Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.FootLeft] = punto;
+            }
+            return correcto;
         }
 
         private bool PiernasEnElSuelo(Skeleton skeleton) {
             double dif = System.Math.Abs(skeleton.Joints[JointType.FootLeft].Position.Y - skeleton.Joints[JointType.FootRight].Position.Y);
-            return dif < m_error;
+            bool correcto = dif < m_error;
+            if (!correcto) {
+                if (skeleton.Joints[JointType.FootLeft].Position.Y < skeleton.Joints[JointType.FootRight].Position.Y){
+                    var punto = skeleton.Joints[JointType.FootRight];
+                    var pos = punto.Position;
+                    pos.Y = skeleton.Joints[JointType.FootLeft].Position.Y;
+                    punto.Position = pos;
+                    skeleton.Joints[JointType.FootRight] = punto;
+                }
+                else {
+                    var punto = skeleton.Joints[JointType.FootLeft];
+                    var pos = punto.Position;
+                    pos.Y = skeleton.Joints[JointType.FootRight].Position.Y;
+                    punto.Position = pos;
+                    skeleton.Joints[JointType.FootLeft] = punto;
+                }
+            
+            }
+            return correcto;
 
         }
 
         private bool BrazoIzquierdoPegadoCuerpo(Skeleton skeleton) {
             double dif_codo_muneca = System.Math.Abs(skeleton.Joints[JointType.ElbowLeft].Position.X - skeleton.Joints[JointType.WristLeft].Position.X);
-            return dif_codo_muneca < m_error && skeleton.Joints[JointType.WristLeft].Position.Y < skeleton.Joints[JointType.ShoulderLeft].Position.Y;
+            bool correcto = dif_codo_muneca < m_error && skeleton.Joints[JointType.WristLeft].Position.Y < skeleton.Joints[JointType.ShoulderLeft].Position.Y;
+            if (!correcto) {
+                var punto = skeleton.Joints[JointType.WristLeft];
+                var pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X;
+                pos.Y = skeleton.Joints[JointType.HipCenter].Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.WristLeft] = punto;
+
+                punto = skeleton.Joints[JointType.HandLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X;
+                pos.Y = skeleton.Joints[JointType.KneeLeft].Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.HandLeft] = punto;
+
+                punto = skeleton.Joints[JointType.ElbowLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X;
+                pos.Y = (skeleton.Joints[JointType.HipCenter].Position.Y + skeleton.Joints[JointType.ShoulderLeft].Position.Y)/2;
+                punto.Position = pos;
+                skeleton.Joints[JointType.ElbowLeft] = punto;
+                
+            }
+
+            return correcto;
+        
         }
 
         private bool BrazoDerechoPegadoCuerpo(Skeleton skeleton)
         {
             double dif_codo_muneca = System.Math.Abs(skeleton.Joints[JointType.ElbowRight].Position.X - skeleton.Joints[JointType.WristRight].Position.X);
-            return dif_codo_muneca < m_error && skeleton.Joints[JointType.WristRight].Position.Y < skeleton.Joints[JointType.ShoulderRight].Position.Y;
+            bool correcto = dif_codo_muneca < m_error && skeleton.Joints[JointType.WristRight].Position.Y < skeleton.Joints[JointType.ShoulderRight].Position.Y;
+
+            if (!correcto)
+            {
+                var punto = skeleton.Joints[JointType.WristRight];
+                var pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X;
+                pos.Y = skeleton.Joints[JointType.HipCenter].Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.WristRight] = punto;
+
+                punto = skeleton.Joints[JointType.HandRight];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X;
+                pos.Y = skeleton.Joints[JointType.KneeRight].Position.Y;
+                punto.Position = pos;
+                skeleton.Joints[JointType.HandRight] = punto;
+
+                punto = skeleton.Joints[JointType.ElbowRight];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X;
+                pos.Y = (skeleton.Joints[JointType.HipCenter].Position.Y + skeleton.Joints[JointType.ShoulderRight].Position.Y) / 2;
+                punto.Position = pos;
+                skeleton.Joints[JointType.ElbowRight] = punto;
+
+            }
+
+            return correcto;
+        
         }
 
         private bool BrazoIzquierdoEncimaCabeza(Skeleton skeleton) {
-            return skeleton.Joints[JointType.WristLeft].Position.Y > skeleton.Joints[JointType.Head].Position.Y &&
+            float long_brazo = System.Math.Abs(skeleton.Joints[JointType.Spine].Position.Y - skeleton.Joints[JointType.Head].Position.Y);
+            bool correcto = skeleton.Joints[JointType.WristLeft].Position.Y > skeleton.Joints[JointType.Head].Position.Y &&
                 skeleton.Joints[JointType.WristLeft].Position.X > skeleton.Joints[JointType.ElbowLeft].Position.X;
+
+            if (!correcto) {
+                var punto = skeleton.Joints[JointType.WristLeft];
+                var pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X;
+                pos.Y = skeleton.Joints[JointType.ShoulderLeft].Position.Y+long_brazo;
+                punto.Position = pos;
+                skeleton.Joints[JointType.WristLeft] = punto;
+
+                punto = skeleton.Joints[JointType.HandLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X;
+                pos.Y = skeleton.Joints[JointType.ShoulderLeft].Position.Y + long_brazo;
+                punto.Position = pos;
+                skeleton.Joints[JointType.HandLeft] = punto;
+
+                punto = skeleton.Joints[JointType.ElbowLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.ShoulderLeft].Position.X;
+                pos.Y = skeleton.Joints[JointType.ShoulderLeft].Position.Y + (1/2)*long_brazo;
+                punto.Position = pos;
+                skeleton.Joints[JointType.ElbowLeft] = punto;
+            }
+            return correcto;
         }
 
         private bool BrazoDerechoEncimaCabeza(Skeleton skeleton)
         {
-            return skeleton.Joints[JointType.WristRight].Position.Y > skeleton.Joints[JointType.Head].Position.Y &&
+            float long_brazo = System.Math.Abs(skeleton.Joints[JointType.Spine].Position.Y - skeleton.Joints[JointType.Head].Position.Y);
+           bool correcto  = skeleton.Joints[JointType.WristRight].Position.Y > skeleton.Joints[JointType.Head].Position.Y &&
                 skeleton.Joints[JointType.WristRight].Position.X < skeleton.Joints[JointType.ElbowRight].Position.X;
+
+           if (!correcto)
+           {
+               var punto = skeleton.Joints[JointType.WristRight];
+               var pos = punto.Position;
+               pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X;
+               pos.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y + long_brazo;
+               punto.Position = pos;
+               skeleton.Joints[JointType.WristRight] = punto;
+
+               punto = skeleton.Joints[JointType.HandRight];
+               pos = punto.Position;
+               pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X;
+               pos.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y + long_brazo;
+               punto.Position = pos;
+               skeleton.Joints[JointType.HandRight] = punto;
+
+               punto = skeleton.Joints[JointType.ElbowRight];
+               pos = punto.Position;
+               pos.X = skeleton.Joints[JointType.ShoulderRight].Position.X;
+               pos.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y + (1 / 2) * long_brazo;
+               punto.Position = pos;
+               skeleton.Joints[JointType.ElbowRight] = punto;
+           }
+           return correcto;
         }
 
         private bool PiernasSeparadas(Skeleton skeleton) {
-            double suelo_cadera = System.Math.Abs(skeleton.Joints[JointType.HipCenter].Position.Y - skeleton.Joints[JointType.AnkleLeft].Position.Y);
+            float long_pierna = System.Math.Abs(skeleton.Joints[JointType.Spine].Position.Y - skeleton.Joints[JointType.Head].Position.Y);
+            float suelo_cadera = System.Math.Abs(skeleton.Joints[JointType.HipCenter].Position.Y - skeleton.Joints[JointType.AnkleLeft].Position.Y);
             double pie_izq_a_centro = System.Math.Abs(skeleton.Joints[JointType.HipCenter].Position.X - skeleton.Joints[JointType.AnkleLeft].Position.X);
             double pie_der_a_centro = System.Math.Abs(skeleton.Joints[JointType.HipCenter].Position.X - skeleton.Joints[JointType.AnkleRight].Position.X);
             
@@ -416,8 +643,82 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             this.angulo_general = ang_der + ang_izq;
 
-            return (ang_der+ang_izq) < this.angulo_separar+this.angulo_separar*m_error && (ang_der+ang_izq) > this.angulo_separar-this.angulo_separar*m_error;
+            bool correcto = (ang_der+ang_izq) < this.angulo_separar+this.angulo_separar*m_error && (ang_der+ang_izq) > this.angulo_separar-this.angulo_separar*m_error;
 
+            if (!correcto) {
+                var punto = skeleton.Joints[JointType.KneeLeft];
+                var pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipLeft].Position.X-((2/3)* long_pierna);
+                punto.Position = pos;
+                skeleton.Joints[JointType.KneeLeft] = punto;
+
+                punto = skeleton.Joints[JointType.KneeRight];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipRight].Position.X + ((2/3)*long_pierna);
+                punto.Position = pos;
+                skeleton.Joints[JointType.KneeRight] = punto;
+
+                punto = skeleton.Joints[JointType.AnkleLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipLeft].Position.X - (long_pierna);
+                punto.Position = pos;
+                skeleton.Joints[JointType.AnkleLeft] = punto;
+
+                punto = skeleton.Joints[JointType.AnkleRight];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipRight].Position.X + ( long_pierna);
+                punto.Position = pos;
+                skeleton.Joints[JointType.AnkleRight] = punto;
+
+                punto = skeleton.Joints[JointType.FootLeft];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipLeft].Position.X - (long_pierna);
+                punto.Position = pos;
+                skeleton.Joints[JointType.FootLeft] = punto;
+
+                punto = skeleton.Joints[JointType.FootRight];
+                pos = punto.Position;
+                pos.X = skeleton.Joints[JointType.HipRight].Position.X + ( long_pierna);
+                punto.Position = pos;
+                skeleton.Joints[JointType.FootRight] = punto;
+            }
+            return correcto;
+        }
+
+        private bool Ej0Correcto(Skeleton skeleton) {
+            bool b1 = BrazoDerechoLevantado(skeleton);
+            bool b2 = BrazoIzquierdoLevantado(skeleton);
+            bool p = PiernaDerechaLevantada(skeleton);
+            return ( b1 && b2  && p );
+        }
+
+        private bool Ej1Correcto(Skeleton skeleton) {
+            bool p = PiernasEnElSuelo(skeleton);
+            bool b1 = BrazoDerechoPegadoCuerpo(skeleton);
+            bool b2 = BrazoIzquierdoPegadoCuerpo(skeleton);
+            return (b1 && b2 && p);
+        }
+
+        private bool Ej2Correcto(Skeleton skeleton)
+        {
+            bool b1 = BrazoDerechoLevantado(skeleton);
+            bool b2 = BrazoIzquierdoLevantado(skeleton);
+            bool p = PiernaIzquierdaLevantada(skeleton);
+            return (b1 && b2 && p);
+        }
+
+        private bool Ej3Correcto(Skeleton skeleton) {
+            bool b1 = BrazoIzquierdoEncimaCabeza(skeleton);
+            bool b2 = BrazoDerechoEncimaCabeza(skeleton);
+            bool p = PiernasSeparadas(skeleton);
+            return (b1 && b2 && p);
+        }
+
+        private bool Ej4Correcto(Skeleton skeleton) {
+            bool p = PiernasEnElSuelo(skeleton);
+            bool b1 = BrazoDerechoPegadoCuerpo(skeleton);
+            bool b2 = BrazoIzquierdoPegadoCuerpo(skeleton);
+            return (b1 && b2 && p);   
         }
 
         // Devuelve true si la posicion del ejercicio es correcta, false en otro caso
@@ -425,23 +726,25 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             bool correcto = false;
             switch(ejercicio){
                 case (0):
-                    correcto = BrazoIzquierdoLevantado(skeleton) 
-                        && BrazoIzquierdoLevantado(skeleton) && PiernaDerechaLevantada(skeleton);
+                    correcto = Ej0Correcto(skeleton);
+                         
                     break;
                 case (1):
-                    correcto = PiernasEnElSuelo(skeleton) && BrazoDerechoPegadoCuerpo(skeleton) && BrazoIzquierdoPegadoCuerpo(skeleton);
+                    correcto = Ej1Correcto(skeleton);
                     break;
                 case (2):
-                    correcto = BrazoIzquierdoLevantado(skeleton) && BrazoIzquierdoLevantado(skeleton) && PiernaIzquierdaLevantada(skeleton);
+                    correcto = Ej2Correcto(skeleton);
                     break;
                 case (3):
-                    correcto = BrazoIzquierdoEncimaCabeza(skeleton) && BrazoDerechoEncimaCabeza(skeleton) && PiernasSeparadas(skeleton);
+                    correcto = Ej3Correcto(skeleton);
                     break;
                 case (4):
-                    correcto = PiernasEnElSuelo(skeleton) && BrazoDerechoPegadoCuerpo(skeleton) && BrazoIzquierdoPegadoCuerpo(skeleton);
+                    correcto = Ej4Correcto(skeleton);
                     break;
 
             }
+            if (correcto) puntuacion += 300;
+            else puntuacion--;
             return correcto;
         }
 
@@ -495,9 +798,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     break;
 
                 case (3):
-                    System.Console.WriteLine("BI:{0} BD:{1} P:{2}" , BrazoIzquierdoEncimaCabeza(skeleton), BrazoDerechoEncimaCabeza(skeleton), PiernasSeparadas(skeleton));
+ 
                     if (EjercicioCorrecto(this.ejercicio_actual, skeleton)){
-                        System.Console.WriteLine("Ejercicio CORRECTO");
+
                         this.ejercicio_actual++;
                     }
                     break;
@@ -510,7 +813,14 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                             this.series_restantes--;
                             if (this.series_restantes == 0)
                             {
-                                System.Console.WriteLine("FIN DEL EJERCICIO");
+                                if (null != this.sensor)
+                                {
+                                    this.sensor.Stop();
+                                }
+                                Window2 ventana_final = new Window2();
+                                ventana_final.ShowDialog();
+                                //this.Close();
+
                             }
                             else {
                                 this.ejercicio_actual = 0; // Empieza de nuevo el ejercicio
