@@ -38,57 +38,57 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <summary>
         /// Width of output drawing
         /// </summary>
-        //private const float RenderWidth = 640.0f;
+        private const float RenderWidth = 640.0f;
 
         /// <summary>
         /// Height of our output drawing
         /// </summary>
-        //private const float RenderHeight = 480.0f;
+        private const float RenderHeight = 480.0f;
 
         /// <summary>
         /// Thickness of drawn joint lines
         /// </summary>
-        //private const double JointThickness = 3;
+        private const double JointThickness = 3;
 
         /// <summary>
         /// Thickness of body center ellipse
         /// </summary>
-        //private const double BodyCenterThickness = 10;
+        private const double BodyCenterThickness = 10;
 
         /// <summary>
         /// Thickness of clip edge rectangles
         /// </summary>
-        //private const double ClipBoundsThickness = 10;
+        private const double ClipBoundsThickness = 10;
 
         /// <summary>
         /// Brush used to draw skeleton center point
         /// </summary>
-        //private readonly Brush centerPointBrush = Brushes.Blue;
+        private readonly Brush centerPointBrush = Brushes.Blue;
 
         /// <summary>
         /// Brush used for drawing joints that are currently tracked
         /// </summary>
-        //private readonly Brush trackedJointBrushVerde = Brushes.Green;
-        //private readonly Brush trackedJointAmarillo = Brushes.Yellow;
-        //private readonly Brush trackedJointTurquesa = Brushes.Turquoise;
+        private readonly Brush trackedJointBrushVerde = Brushes.Green;
+        private readonly Brush trackedJointAmarillo = Brushes.Yellow;
+        private readonly Brush trackedJointTurquesa = Brushes.Turquoise;
 
 
 
         /// <summary>
         /// Brush used for drawing joints that are currently inferred
         /// </summary>        
-        //private readonly Brush inferredJointBrush = Brushes.Yellow;
+        private readonly Brush inferredJointBrush = Brushes.Yellow;
 
         /// <summary>
         /// Objetos pen para dibujar el esqueleto 
         /// </summary>
-        /*private readonly Pen trackedBonePenVerde = new Pen(Brushes.Green, 6);
+        private readonly Pen trackedBonePenVerde = new Pen(Brushes.Green, 6);
         private readonly Pen trackedBonePenRojo = new Pen(Brushes.Red, 6);
 
         /// <summary>
         /// Pen used for drawing bones that are currently inferred
         /// </summary>        
-        private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);*/
+        private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);
 
         /// <summary>
         /// Active Kinect sensor
@@ -98,7 +98,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <summary>
         /// Drawing group for skeleton rendering output
         /// </summary>
-        //private DrawingGroup drawingGroup;
+        private DrawingGroup drawingGroup;
 
         /// <summary>
         /// Drawing image that we will display
@@ -191,10 +191,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             this.campo_ejercicio.Content = this.nombre_ejercicio[this.ejercicio_actual];
 
             // Create the drawing group we'll use for drawing
-            //this.drawingGroup = new DrawingGroup();
+            this.drawingGroup = new DrawingGroup();
 
             // Create an image source that we can use in our image control
-            //this.imageSource = new DrawingImage(this.drawingGroup);
+            this.imageSource = new DrawingImage(this.drawingGroup);
 
             // Display the drawing using our image control
             Image.Source = this.imageSource;
@@ -231,7 +231,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 // Turn on the skeleton stream to receive skeleton frames
 
 
-                this.sensor.ColorFrameReady += this.SensorColorFrameReady;
+                //this.sensor.ColorFrameReady += this.SensorColorFrameReady;
 
                 // Add an event handler to be called whenever there is new color frame data
                 this.sensor.SkeletonStream.Enable();
@@ -310,7 +310,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
 
-            if (true)
+            using (DrawingContext dc = this.drawingGroup.Open())
             {
                 // Draw a transparent background to set the render size
                 //dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
@@ -323,7 +323,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
-                            this.DrawBonesAndJoints(skel);
+                            this.DrawBonesAndJoints(skel, dc);
                         }
                         //else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
                         //{
@@ -341,10 +341,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 //this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
             }
 
-            // This is the bitmap we'll display on-screen
-            //this.colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
-
-            // Set the image we display to point to the bitmap where we'll put the image data
         }
 
 
@@ -464,7 +460,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="skeleton">skeleton to draw</param>
         /// <param name="drawingContext">drawing context to draw to</param>
         /// 
-        private void DrawBonesAndJoints(Skeleton skeleton)
+        private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
             // Para cada uno de los posibles ejercicios
             if (this.ejercicio_actual == 0 || this.ejercicio_actual == 2 || this.ejercicio_actual == 3)
@@ -539,7 +535,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
 
             // Render Torso
-            /*this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
+            this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.Spine);
@@ -587,7 +583,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 {
                     drawingContext.DrawEllipse(drawBrush, null, this.SkeletonPointToScreen(joint.Position), JointThickness, JointThickness);
                 }
-            }*/
+            }
         }
         
 
@@ -611,7 +607,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="drawingContext">drawing context to draw to</param>
         /// <param name="jointType0">joint to start drawing from</param>
         /// <param name="jointType1">joint to end drawing at</param>
-       /* private void DrawBone(Skeleton skeleton, DrawingContext drawingContext, JointType jointType0, JointType jointType1)
+       private void DrawBone(Skeleton skeleton, DrawingContext drawingContext, JointType jointType0, JointType jointType1)
         {
             Joint joint0 = skeleton.Joints[jointType0];
             Joint joint1 = skeleton.Joints[jointType1];
@@ -638,6 +634,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
 
             drawingContext.DrawLine(drawPen, this.SkeletonPointToScreen(joint0.Position), this.SkeletonPointToScreen(joint1.Position));
-        }*/
+        }
     }
 }
