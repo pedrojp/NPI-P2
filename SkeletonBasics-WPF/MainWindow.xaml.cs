@@ -10,6 +10,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     using System.Windows;
     using System.Windows.Media;
     using Microsoft.Kinect;
+    using System.Windows.Media.Imaging;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -17,9 +18,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     public partial class MainWindow : Window
     {
         /// Ángulo en el que es necesario levanta la pierna
-        private int angulo_levantar = 30;
+        private int angulo_levantar = 60;
         /// Ángulo en el que ambas piernas deben separarse
-        private int angulo_separar = 30;
+        private int angulo_separar = 40;
         /// Ángulo general
         private double angulo_general = 0;
 
@@ -103,6 +104,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// Drawing image that we will display
         /// </summary>
         private DrawingImage imageSource;
+
+        /// <summary>
+        /// Bitmap that will hold color information
+        /// </summary>
+        private WriteableBitmap colorBitmap;
+
+        /// <summary>
+        /// Intermediate storage for the color data received from the camera
+        /// </summary>
+        private byte[] colorPixels;
 
 
         /// <summary>
@@ -203,6 +214,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             if (null != this.sensor)
             {
+
+                // Turn on the color stream to receive color frames
+                this.sensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
+
+                // Allocate space to put the pixels we'll receive
+                this.colorPixels = new byte[this.sensor.ColorStream.FramePixelDataLength];
+
                 // Turn on the skeleton stream to receive skeleton frames
                 this.sensor.SkeletonStream.Enable();
 
@@ -287,11 +305,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 // prevent drawing outside of our render area
                 this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
             }
+
+            // This is the bitmap we'll display on-screen
+            this.colorBitmap = new WriteableBitmap(this.sensor.ColorStream.FrameWidth, this.sensor.ColorStream.FrameHeight, 96.0, 96.0, PixelFormats.Bgr32, null);
+
+            // Set the image we display to point to the bitmap where we'll put the image data
         }
 
-        private void ActualizaInterfaz() { 
-            
-        }
 
         private bool BrazoIzquierdoLevantado(Skeleton skeleton)
         {
